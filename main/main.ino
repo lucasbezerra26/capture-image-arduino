@@ -216,8 +216,8 @@ void realizarCaptura()
 	for (int passo_vertical = 0;; passo_vertical += configObj.tamanho_vertical)
 	{
 		captura();
-		// passoHorizontalCrescente();
-		passoHorizontalDecrescente();
+		passoHorizontalCrescente();
+		// passoHorizontalDecrescente();
 
 		passo_vertical += configObj.tamanho_vertical;
 		stepperMotor2.step(configObj.tamanho_vertical);
@@ -228,8 +228,8 @@ void realizarCaptura()
 		if (passo_vertical + configObj.tamanho_vertical >= configObj.passo_vertical)
 		{
 			captura();
-			// passoHorizontalDecrescente();
-			passoHorizontalCrescente();
+			passoHorizontalDecrescente();
+			// passoHorizontalCrescente();
 			int passo_final = configObj.passo_vertical - passo_vertical;
 			stepperMotor2.step(passo_final);
 
@@ -242,22 +242,22 @@ void realizarCaptura()
 		}
 
 		captura();
-		// passoHorizontalDecrescente();
-		passoHorizontalCrescente();
+		passoHorizontalDecrescente();
+		// passoHorizontalCrescente();
 
 		if (passo_vertical + configObj.tamanho_vertical >= configObj.passo_vertical)
 		{
 			captura();
-			// passoHorizontalCrescente();
-			passoHorizontalDecrescente();
+			passoHorizontalCrescente();
+			// passoHorizontalDecrescente();
 			int passo_final = configObj.passo_vertical - passo_vertical;
 			stepperMotor2.step(passo_final);
 
 			Serial.print("passo vertical3: ");
 			Serial.println(configObj.tamanho_vertical);
 			captura();
-			// passoHorizontalCrescente();
-			passoHorizontalDecrescente();
+			passoHorizontalCrescente();
+			// passoHorizontalDecrescente();
 			break;
 		}
 		stepperMotor2.step(configObj.tamanho_vertical);
