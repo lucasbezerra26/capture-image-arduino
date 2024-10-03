@@ -1,12 +1,8 @@
-#include <ArduinoJson.h>
+// #include <ArduinoJson.h>
 #include <EEPROM.h>
 #include <Stepper.h>
 
 const int stepsPerRevolution = 20;
-
-#define BUTTON_PIN_AZUL 12
-#define BUTTON_PIN_VERDE_OK 11
-#define BUTTON_PIN_VERMELHO 10
 
 #define IN1_MOTOR1 9
 #define IN2_MOTOR1 8
@@ -40,64 +36,75 @@ void setup()
 	stepperMotor2.setSpeed(200);
 	Serial.begin(9600);
 
-	pinMode(BUTTON_PIN_VERMELHO, INPUT_PULLUP);
-	pinMode(BUTTON_PIN_AZUL, INPUT_PULLUP);
-	pinMode(BUTTON_PIN_VERDE_OK, INPUT_PULLUP);
-
 	configObj = lerConfiguracoes();
 	prints();
 }
 
 void loop()
 {
-  // String value_read = Serial.readString();
-
-	if (digitalRead(BUTTON_PIN_AZUL) == LOW)
+	if (Serial.available())
 	{
-		Configuracoes configObj;
-		Serial.println("Configurando Passo Horizontal (->)");
-		configObj.passo_horizontal = config(motor1);
-		Serial.println("Configurando Passo Vertical (|)");
-		configObj.passo_vertical = config(motor2);
-		Serial.println("Configurando Tamanho Horizontal (<-)");
-		configObj.tamanho_horizontal = config(motor1);
-		Serial.println("Configurando Tamanho Vertical (|)");
-		configObj.tamanho_vertical = config(motor2);
+		String comando = Serial.readStringUntil('\n');
+		comando.trim(); // Remove espaços e quebras de linha desnecessárias
 
-		stepperMotor1.step(-configObj.passo_horizontal + configObj.tamanho_horizontal);
-		stepperMotor2.step(-configObj.passo_vertical + configObj.tamanho_vertical);
+		if (comando == "configurar")
+		{
 
-		salvarConfiguracoes(configObj);
-		prints();
-	}
-	else if (digitalRead(BUTTON_PIN_VERDE_OK) == LOW)
-	{
-
-		stepperMotor1.step(configObj.passo_horizontal);
-		stepperMotor2.step(configObj.passo_vertical);
-		delay(500);
-
-		stepperMotor1.step(-configObj.tamanho_horizontal);
-		stepperMotor2.step(-configObj.tamanho_vertical);
-		delay(500);
-
-		stepperMotor1.step(-(configObj.passo_horizontal + configObj.tamanho_horizontal));
-		stepperMotor2.step(-(configObj.passo_vertical + configObj.tamanho_vertical));
-		prints();
-	}
-	if (digitalRead(BUTTON_PIN_VERMELHO) == LOW)
-	{
-		realizarCaptura();
-		prints();
+			configurarPassos();
+		}
+		else if (comando == "testar")
+		{
+			testarPassos();
+		}
+		else if (comando == "capturar")
+		{
+			realizarCaptura();
+			prints();
+		}
 	}
 }
 
 void prints()
 {
-	Serial.println("Selecione as opcoes abaixo");
-	Serial.println("BOTAO AZUL: Configurar Passos");
-	Serial.println("BOTAO VERDE: Testar Passos");
-	Serial.println("BOTAO VERMELHO: Comecar");
+	Serial.println("");
+	Serial.println("menu");
+	Serial.println("Selecione as opções abaixo via Serial:");
+	Serial.println("Digite 'configurar' para configurar os passos");
+	Serial.println("Digite 'testar' para testar os passos");
+	Serial.println("Digite 'capturar' para começar a captura");
+}
+
+void configurarPassos()
+{
+	Serial.println("Configurando Passo Horizontal (->)");
+	configObj.passo_horizontal = config(motor1);
+	Serial.println("Configurando Passo Vertical (|)");
+	configObj.passo_vertical = config(motor2);
+	Serial.println("Configurando Tamanho Horizontal (<-)");
+	configObj.tamanho_horizontal = config(motor1);
+	Serial.println("Configurando Tamanho Vertical (|)");
+	configObj.tamanho_vertical = config(motor2);
+
+	stepperMotor1.step(-configObj.passo_horizontal + configObj.tamanho_horizontal);
+	stepperMotor2.step(-configObj.passo_vertical + configObj.tamanho_vertical);
+
+	salvarConfiguracoes(configObj);
+	prints();
+}
+
+void testarPassos()
+{
+	stepperMotor1.step(configObj.passo_horizontal);
+	stepperMotor2.step(configObj.passo_vertical);
+	delay(500);
+
+	stepperMotor1.step(-configObj.tamanho_horizontal);
+	stepperMotor2.step(-configObj.tamanho_vertical);
+	delay(500);
+
+	stepperMotor1.step(-(configObj.passo_horizontal + configObj.tamanho_horizontal));
+	stepperMotor2.step(-(configObj.passo_vertical + configObj.tamanho_vertical));
+	prints();
 }
 
 int config(int currentMotor)
@@ -107,28 +114,33 @@ int config(int currentMotor)
 
 	while (true)
 	{
-		if (digitalRead(BUTTON_PIN_AZUL) == LOW)
+		if (Serial.available())
 		{
-			delay(100);
-			Serial.println("Passo positivo");
-			currentMotor == motor1 ? stepperMotor1.step(stepsPerRevolution) : stepperMotor2.step(stepsPerRevolution);
-			passo += stepsPerRevolution;
-		}
-		else if (digitalRead(BUTTON_PIN_VERMELHO) == LOW)
-		{
-			delay(100);
-			Serial.println("Passo negativo");
-			currentMotor == motor1 ? stepperMotor1.step(-stepsPerRevolution) : stepperMotor2.step(-stepsPerRevolution);
-			passo -= stepsPerRevolution;
-		}
-		if (digitalRead(BUTTON_PIN_VERDE_OK) == LOW)
-		{
-			Serial.println("Ok");
-			delay(2000);
-			return passo;
+			String comando = Serial.readStringUntil('\n');
+			comando.trim();
+
+			if (comando == "positivo")
+			{
+				Serial.println("Passo positivo");
+				currentMotor == motor1 ? stepperMotor1.step(stepsPerRevolution) : stepperMotor2.step(stepsPerRevolution);
+				passo += stepsPerRevolution;
+			}
+			else if (comando == "negativo")
+			{
+				Serial.println("Passo negativo");
+				currentMotor == motor1 ? stepperMotor1.step(-stepsPerRevolution) : stepperMotor2.step(-stepsPerRevolution);
+				passo -= stepsPerRevolution;
+			}
+			else if (comando == "ok")
+			{
+				Serial.println("Ok");
+				delay(2000);
+				return passo;
+			}
 		}
 	}
 }
+
 void salvarConfiguracoes(Configuracoes configObj)
 {
 	int addr = 0; // endereço inicial na EEPROM
@@ -267,25 +279,16 @@ void realizarCaptura()
 	}
 };
 
-// void captura()
-// {
-// 	Serial.println(0);
-// 	while (!Serial.available())
-// 		;
-// 	if (Serial.readString() != 1)
-// 	{
-// 		captura();
-// 	}
-// }
-
 void captura()
 {
-  Serial.println('0');
-  while (!Serial.available());
-  String value_read = Serial.readString();
+	delay(2000);
+	Serial.println('0');
+	while (!Serial.available())
+		;
+	String value_read = Serial.readString();
 
-  if (value_read.indexOf('1') != -1)
-  {
-    Serial.println("2");
-  }
+	if (value_read.indexOf('1') != -1)
+	{
+		Serial.println("2");
+	}
 }
