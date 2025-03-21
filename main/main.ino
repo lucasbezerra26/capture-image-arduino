@@ -2,7 +2,7 @@
 #include <EEPROM.h>
 #include <Stepper.h>
 
-const int stepsPerRevolution = 20;
+const int stepsPerRevolution = 60;
 
 #define IN1_MOTOR1 9
 #define IN2_MOTOR1 8
@@ -86,7 +86,8 @@ void configurarPassos()
 	configObj.tamanho_vertical = config(motor2);
 
 	stepperMotor1.step(-configObj.passo_horizontal + configObj.tamanho_horizontal);
-	stepperMotor2.step(-configObj.passo_vertical + configObj.tamanho_vertical);
+	stepperMotor2.step(-(-configObj.passo_vertical + configObj.tamanho_vertical));
+
 
 	salvarConfiguracoes(configObj);
 	prints();
@@ -95,15 +96,17 @@ void configurarPassos()
 void testarPassos()
 {
 	stepperMotor1.step(configObj.passo_horizontal);
-	stepperMotor2.step(configObj.passo_vertical);
+	stepperMotor2.step(-configObj.passo_vertical);
+
 	delay(500);
 
 	stepperMotor1.step(-configObj.tamanho_horizontal);
-	stepperMotor2.step(-configObj.tamanho_vertical);
+	stepperMotor2.step(configObj.tamanho_vertical);
+
 	delay(500);
 
 	stepperMotor1.step(-(configObj.passo_horizontal + configObj.tamanho_horizontal));
-	stepperMotor2.step(-(configObj.passo_vertical + configObj.tamanho_vertical));
+	stepperMotor2.step(configObj.passo_vertical + configObj.tamanho_vertical);
 	prints();
 }
 
@@ -122,7 +125,8 @@ int config(int currentMotor)
 			if (comando == "positivo")
 			{
 				Serial.println("Passo positivo");
-				currentMotor == motor1 ? stepperMotor1.step(stepsPerRevolution) : stepperMotor2.step(stepsPerRevolution);
+				currentMotor == motor1 ? stepperMotor1.step(stepsPerRevolution) : stepperMotor2.step(-stepsPerRevolution);
+
 				passo += stepsPerRevolution;
 			}
 			else if (comando == "negativo")
@@ -232,7 +236,8 @@ void realizarCaptura()
 		// passoHorizontalDecrescente();
 
 		passo_vertical += configObj.tamanho_vertical;
-		stepperMotor2.step(configObj.tamanho_vertical);
+		stepperMotor2.step(-configObj.tamanho_vertical);
+
 
 		Serial.print("passo vertical1: ");
 		Serial.println(configObj.tamanho_vertical);
@@ -243,7 +248,8 @@ void realizarCaptura()
 			passoHorizontalDecrescente();
 			// passoHorizontalCrescente();
 			int passo_final = configObj.passo_vertical - passo_vertical;
-			stepperMotor2.step(passo_final);
+			stepperMotor2.step(-passo_final);
+
 
 			Serial.print("passo vertical2: ");
 			Serial.println(configObj.tamanho_vertical);
